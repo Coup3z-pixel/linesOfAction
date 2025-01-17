@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/head :: head}"></head>
+<body class="flex w-screen">
+	<nav class="w-1/6 flex flex-col items-center gap-8">
+		<h1 class="font-bold text-3xl">Lines of Action</h1>
+		<div class="flex flex-col items-start w-full gap-4">
+			<a href="/play">Play</a>
+		</div>
+		<div class="mt-auto">
+			<a href="/setting">Setting</a>
+		</div>
+	</nav>
+	<main class="w-5/6 flex flex-col items-center justify-center h-screen" th:insert="~{${content}}"></main>
+</body>
