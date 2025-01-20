@@ -19,16 +19,16 @@ public class GameTests {
 	void straightMovement() {
 		Game gameTest = new Game("", new Player(""), new Player(""));
 		GameReferee gameReferee = new GameReferee();
-		assertTrue(gameReferee.isMoveValid(gameTest, "b1", "b3", (short)1));
+		assertTrue(gameReferee.isMoveValid(gameTest, "b1", "b3", (short)0));
 		gameTest.movePiece("b1", "b3");
-		assertTrue(!gameReferee.isMoveValid(gameTest, "a3", "d3", (short)0));
+		assertTrue(!gameReferee.isMoveValid(gameTest, "a3", "d3", (short)1));
 	}
 
 	@Test
 	void diagonalMovement() {
 		Game gameTest = new Game("", new Player(""), new Player(""));
 		GameReferee gameReferee = new GameReferee();
-		assertTrue(gameReferee.isMoveValid(gameTest, "a6", "c4", (short)0));
+		assertTrue(gameReferee.isMoveValid(gameTest, "a6", "c4", (short)1));
 	}
 
 	@Test

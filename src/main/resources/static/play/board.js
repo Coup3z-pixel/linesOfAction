@@ -8,6 +8,13 @@ const privatePreUrl = '/player/'
 const gameStartUrl = '/move/start'
 const moveOnlineUrl = '/move/online'
 
+const gamePosition = {
+	a2: 'black', a3: 'black', a4: 'black', a5: 'black', a6: 'black', a7: 'black',
+	h2: 'black', h3: 'black', h4: 'black', h5: 'black', h6: 'black', h7: 'black',
+	b1: 'white', c1: 'white', d1: 'white', e1: 'white', f1: 'white', g1: 'white', 
+	b8: 'white', c8: 'white', d8: 'white', e8: 'white', f8: 'white', g8: 'white', 
+}
+
 function uuidv4() {
 	return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'
 	.replace(/[xy]/g, function (c) {
@@ -19,6 +26,18 @@ function uuidv4() {
 
 const playerId = uuidv4();
 let playerIndex = -1;
+
+const stompClient = new StompJs.Client({
+	brokerURL: 'ws://localhost:8080/play-websocket'
+});
+
+let gameId = 0;
+
+let prevMove = {
+	to: '', 
+	from: '', 
+	toSquare: '',
+}
 
 stompClient.onConnect = (frame) => {
 			console.log('Connected: ' + frame);
@@ -42,15 +61,79 @@ stompClient.onConnect = (frame) => {
 				}
 			});
 
+			let fromSquare = null;
+
+				linesOfAction.addEventListener('click', (e) => {
+					const toSquare = e.target;
+
+					// Select a toSquare
+					if (!fromSquare && toSquare.style.backgroundImage) {
+						fromSquare = toSquare;
+						toSquare.classList.add('bg-yellow-600');
+					} 
+					// Move the piece
+					else if (fromSquare) {
+
+						stompClient.publish({
+							destination: "/play/online",
+							body: JSON.stringify({
+								gameId,
+								from: fromSquare.dataset.position,
+								to: toSquare.dataset.position,
+								playerIndex: playerIndex
+							})
+						})
+
+						prevMove = {
+							from: fromSquare.dataset.position,
+							to: toSquare.dataset.position,
+							toSquare: toSquare.style.backgroundImage
+						}
+
+						console.log(fromSquare.style.backgroundImage)
+						let pieceImg = fromSquare.style.backgroundImage
+						
+
+						fromSquare.style.backgroundImage = null;
+						fromSquare.textContent = '';
+						fromSquare.classList.remove('bg-yellow-600');
+						toSquare.style.backgroundImage = pieceImg;
+						fromSquare = null	;
+					}
+				});
+
+
+
+
 			stompClient.subscribe(privatePreUrl + playerId + moveOnlineUrl, (move) => {
+
 				let moveBody = JSON.parse(move.body);
 
+				// If move is not valid
+				if(moveBody == false) {
+					// Reverse the move
+					const toSquare = document.querySelector(`[data-position="${prevMove.to}"]`);
+					let pieceImg = toSquare.style.backgroundImage;
+					toSquare.style.backgroundImage = prevMove.toSquare;
+					const fromSquare = document.querySelector(`[data-position="${prevMove.from}"]`);
+					fromSquare.style.backgroundImage = pieceImg;
+
+					return;
+				}
+
+				// If move is valid
 				const fromSquare = document.querySelector(`[data-position="${moveBody.from}"]`);
 				let pieceImg = fromSquare.style.backgroundImage;
-				fromSquare.style.backgroundImage = '';
+				fromSquare.style.backgroundImage = null;
 
 				const toSquare = document.querySelector(`[data-position="${moveBody.to}"]`);
 				toSquare.style.backgroundImage = pieceImg;
+
+				// TODO change gamePosition
+				gamePosition[moveBody.to] = (playerIndex == 0 ? 'white' : 'black')
+				gamePosition[moveBody.from] = undefined;
+
+				return;
 			})
 		};
 
@@ -116,42 +199,6 @@ document.addEventListener("DOMContentLoaded", () => {
 			linesOfAction.appendChild(square);
 		}
 	}
-
-	
-
-	linesOfAction.addEventListener('click', (e) => {
-		const square = e.target;
-
-		// Select a square
-		if (!selectedSquare && square.style.backgroundImage) {
-			selectedSquare = square;
-			square.classList.add('bg-yellow-600');
-		} 
-		// Move the piece
-		else if (selectedSquare) {
-
-			stompClient.publish({
-				destination: "/play/online",
-				body: JSON.stringify({
-					gameId,
-					from: selectedSquare.dataset.position,
-					to: square.dataset.position,
-					playerIndex: playerIndex
-				})
-			})
-
-			pieceImg = selectedSquare.style.backgroundImage;
-
-			selectedSquare.style.backgroundImage = null;
-			selectedSquare.textContent = '';
-			selectedSquare.classList.remove('bg-yellow-600');
-			square.style.backgroundImage = pieceImg;
-			selectedSquare = null	;
-
-
-			gamePosition[square.dataset.position] = playerIndex;
-		}
-	});
 
 	gameContainer.insertBefore(linesOfAction, playerStatus)
 

@@ -36,14 +36,17 @@ public class OnlinePlayController {
 	@MessageMapping("/online") // url: /play/online
 	public void playGame(MoveMessage move) {
 		Game game = games.get(move.getGameId());
+		short result = gameReferee.getGameState(game);
+
 
 		if(game == null) return;
-		if(gameReferee.getGameState(game) == -1) {
+		if(result != -1) {
 			// Save it on MongoDB
 			// Send the information to both users
+			System.out.println("HI");
+			
+			return;
 		}
-
-		System.out.println(move);
 
 		boolean isMoveValid = gameReferee.isMoveValid(game, move.getFrom(), move.getTo(), move.getPlayerIndex());
 
@@ -56,14 +59,17 @@ public class OnlinePlayController {
 					new MoveMessage("", move.getFrom(), move.getTo(), (short)-1)
 				);
 
+			System.out.println(game);
+			System.out.println(result);
+
 			return;
 		}
 	
 		sendingOperations.convertAndSendToUser(
 				game.getPlayer(move.getPlayerIndex()).getId(), 
 				"/move/online", 
-				false
-			);		
+				false // TODO game error message
+			);
 
 		return;
 	}

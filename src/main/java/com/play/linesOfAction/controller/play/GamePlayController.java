@@ -14,12 +14,10 @@ public class GamePlayController {
 
 	@GetMapping("/play/game")
 	public String redirectToGame(@RequestParam boolean isOnline) {
-		UUID uuid = UUID.randomUUID();
-
 		if (isOnline) {
-			return String.format("/play/online?id=%s", uuid.toString());	
+			return "/play/online";
 		}
 
-		return String.format("/play/computer", uuid.toString());	
+		return "/play/computer";
 	}
 }

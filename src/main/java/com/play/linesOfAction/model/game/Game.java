@@ -17,9 +17,9 @@ public class Game {
 	@Id
 	private String id;
 	public char[][] board;
-	public LinkedList<String[]> history;
+	public GameHistory history;
 	private Player[] players;
-	private int currentPlayerTurn;
+	private short currentPlayerTurn;
 
 	public Game(String id, Player one, Player two) {
 		this.board = new char[][]{
@@ -32,30 +32,18 @@ public class Game {
 			{'b', ' ', ' ', ' ', ' ', ' ', ' ', 'b'},
 			{' ', 'w', 'w', 'w', 'w', 'w', 'w', ' '},
 		};
-
-		history = new LinkedList<String[]>();
+		
+		this.history = new GameHistory();
 
 		this.players = new Player[]{one, two};
+		currentPlayerTurn = 0;
 	}
 
 	public Game(char[][] board) { this.board = board; }
 
 	public String getId() { return this.id; }
 	public Player getPlayer(int playerIndex) { return this.players[playerIndex]; }
-
-	public Game returnGame(int moves) {
-		Game recount = new Game("", this.players[0], this.players[1]);
-		Iterator<String[]> iterator = this.history.iterator();
-
-		for (int i = 0; i < moves; i++) {
-			if (!iterator.hasNext()) return recount;
-
-			String[] move = iterator.next();
-			recount.movePiece(move[0], move[1]);
-		}
-
-		return recount;
-	}
+	public short getCurrTurn() { return this.currentPlayerTurn; }
 
 	public short returnPlayerIndex(String user_id) {
 		if(this.players[0].getId().equals(user_id)) return (short)0;
@@ -63,13 +51,8 @@ public class Game {
 		return (short)-1;
 	}
 
-	public void pushHistory(String init, String move) {
-		history.add(new String[]{init, move});
-	}
-
 	public char getPieceOfPlayer(short playerIndex) {
-		if (playerIndex == 0) return 'w';
-		else return 'b';
+		return (playerIndex == 0 ? 'w' : 'b');
 	}
 
 	// Returns yCord, xCord
@@ -88,7 +71,8 @@ public class Game {
 		this.board[initCord[0]][initCord[1]] = ' ';
 		this.board[finalCord[0]][finalCord[1]] = piece;
 
-		this.currentPlayerTurn = 1 - this.currentPlayerTurn;
+		this.currentPlayerTurn = (short)(1 - this.currentPlayerTurn);
+		this.history.pushHistory(init, move);
 	}
 
 	/* Checks if the boards[yCord][xCord] is playerIndex's */

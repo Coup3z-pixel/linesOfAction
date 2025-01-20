@@ -5,8 +5,6 @@ import java.util.LinkedList;
 import java.util.Queue;
 import java.util.Set;
 
-import org.checkerframework.checker.units.qual.s;
-
 /**
  * GameReferee
  */
@@ -15,7 +13,7 @@ public class GameReferee {
 	public GameReferee() {}
 
 	/* Returns the Player who won or -1 for noone */
-	public int getGameState(Game game) {
+	public short getGameState(Game game) {
 
 		boolean playerOneWin = this.areAllPiecesConnected(
 				game, 
@@ -86,9 +84,12 @@ public class GameReferee {
 		int[] initCord = game.convertStrToCord(init);
 		int[] finalCord = game.convertStrToCord(move);
 
+		if (playerIndex != game.getCurrTurn()) {
+			System.out.println("Not Current's turn");
+			return false;
+		}
+
 		// board[yCord][xCord]
-		
-		// Tested
 		if(
 			!game.isInRange(initCord[0]) || !game.isInRange(initCord[1]) ||
 			!game.isInRange(finalCord[0]) || !game.isInRange(finalCord[1])
@@ -97,7 +98,11 @@ public class GameReferee {
 			return false;
 		}
 
-		// Tested
+		if (game.board[initCord[0]][initCord[1]] == game.board[finalCord[0]][finalCord[1]]) {
+			System.out.println("Can't take own piece");
+			return false;
+		}
+
 		if(!game.isPieceOfPlayer(initCord[1], initCord[0], playerIndex)) {
 			System.out.println("Not Player's Piece");
 			return false;
@@ -154,9 +159,6 @@ public class GameReferee {
 				System.out.println("Move goes over enemy piece");
 				return false;
 			}
-
-			System.out.println(game.board[yCount][xCount]);
-			System.out.println(game.getPieceOfPlayer((short)(1-playerIndex)));
 
 			xCount += xDirection;
 			yCount += yDirection;

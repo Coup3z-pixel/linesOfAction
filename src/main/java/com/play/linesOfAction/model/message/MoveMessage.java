@@ -26,8 +26,6 @@ public class MoveMessage {
 	public void setGameId(String gameId) { this.gameId = gameId; }
 	public void setFrom(String from) { this.from = from; }
 	public void setTo(String to) { this.to = to; }
-	public void setPlayerIndex(short playerIndex) { this.playerIndex = playerIndex; }
-
 	@Override
 	public String toString() {
 		return "GameID: " + this.gameId + "\n"+"From: " + this.from + "\n" + "To: " + this.to + "\n" + "Index: " + this.playerIndex;
