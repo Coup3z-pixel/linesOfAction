@@ -3,8 +3,6 @@ package com.play.linesOfAction.model.game;
 import java.util.Iterator;
 import java.util.LinkedList;
 
-import com.play.linesOfAction.model.Player;
-
 /**
  * GameHistory
  */

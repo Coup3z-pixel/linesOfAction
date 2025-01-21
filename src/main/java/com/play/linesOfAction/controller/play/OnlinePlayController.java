@@ -7,16 +7,18 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.play.linesOfAction.model.game.Game;
 import com.play.linesOfAction.model.game.GameReferee;
-import com.play.linesOfAction.model.Player;
+import com.play.linesOfAction.model.game.Player;
 import com.play.linesOfAction.model.message.GameStatusMessage;
 import com.play.linesOfAction.model.message.MoveMessage;
 
@@ -38,6 +40,7 @@ public class OnlinePlayController {
 		Game game = games.get(move.getGameId());
 		short result = gameReferee.getGameState(game);
 
+		System.out.println(move);
 
 		if(game == null) return;
 		if(result != -1) {
@@ -87,7 +90,7 @@ public class OnlinePlayController {
 			SimpMessageHeaderAccessor headerAccessor
 		) {
 
-		Player newPlayer = new Player(player.getId());
+		Player newPlayer = new Player(player.getId(), ""); // TODO get session id
 		headerAccessor.getSessionAttributes().put("player", newPlayer);	
 
 		Optional<Player> potentialPlayer = this.getAvailablePlayer();
@@ -129,7 +132,18 @@ public class OnlinePlayController {
 		return;
 	}
 
+	@EventListener
+	public void onDisconnectEvent(SessionDisconnectEvent event) {
+		System.out.println(event.getSessionId());
+		this.removePlayer(event.getSessionId());
+	}
+
 	private Optional<Player> getAvailablePlayer() {
 		return Optional.ofNullable(playersWaiting.pollFirst());
+	}
+
+	private boolean removePlayer(String id) {
+		System.out.println(playersWaiting);
+		return playersWaiting.remove(new Player("", id));
 	}
 }

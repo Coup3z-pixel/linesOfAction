@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+	<script>
+		async function redirectToGame(isOnline) {
+			let response = await fetch(`/play/game?isOnline=${isOnline}`, {
+				method: "GET"
+			})
+			const url = await response.text();
+      window.location.href = url; // Redirect to the generated URL`
+		}
+	</script>
+	<div class="min-h-screen w-11/12 flex items-center flex-col gap-8 py-12">
+		<h1 class="text-3xl font-bold">Review</h1>
+		<div class="w-5/6">
+			<h1 class="text-xl">Previous Games: </h1>
+			<div class="flex flex-row">
+				<th:block th:each="student : ${students}">
+					<div>
+						<h1>{student.name}</h1>
+					</div>
+				</th:block>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

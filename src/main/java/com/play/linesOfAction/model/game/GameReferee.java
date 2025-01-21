@@ -155,6 +155,7 @@ public class GameReferee {
 		int yCount = initCord[0] + yDirection;		
 
 		while(yCount != finalCord[0] || xCount != finalCord[1]) {
+			System.out.println(game.board[yCount][xCount]);
 			if(game.board[yCount][xCount] == game.getPieceOfPlayer((short)(1-playerIndex))) {
 				System.out.println("Move goes over enemy piece");
 				return false;

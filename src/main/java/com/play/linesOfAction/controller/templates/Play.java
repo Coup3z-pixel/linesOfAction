@@ -15,5 +15,4 @@ public class Play {
 		model.addAttribute("content", "play/play");
 		return "layout";
 	}
-
 }

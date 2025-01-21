@@ -1,12 +1,7 @@
 package com.play.linesOfAction.model.game;
 
-import java.util.Iterator;
-import java.util.LinkedList;
-
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
-import com.play.linesOfAction.model.Player;
 
 /**
  * Game
