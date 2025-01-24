@@ -5,9 +5,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-
-import static org.springframework.security.config.Customizer.withDefaults;
 
 /**
  * SecurityConfig
@@ -15,7 +12,13 @@ import static org.springframework.security.config.Customizer.withDefaults;
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
-	
+
+	private final CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler;
+
+	public SecurityConfig(CustomAuthenticationSuccessHandler customAuthenticationSuccessHandler) {
+		this.customAuthenticationSuccessHandler = customAuthenticationSuccessHandler;
+	}
+
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		return http
@@ -24,12 +27,10 @@ public class SecurityConfig {
 					.requestMatchers("/user/**").authenticated()
 					.anyRequest().permitAll();
 			})
-		.oauth2Login(withDefaults())
+		.oauth2Login(oauth2 -> 
+				oauth2
+				.successHandler(this.customAuthenticationSuccessHandler))
 		.getOrBuild();
 	}
 
-	@Bean
-	public AuthenticationSuccessHandler customSuccessHandler() {
-		return new CustomAuthenticationSuccessHandler();
-	}
 }

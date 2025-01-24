@@ -11,10 +11,10 @@ public class Player {
 
 	@Id
 	private String id;
-
 	private String sessionId;
+	private String email;
 
-	public Player(String id, String sessionId) {
+	public Player(String id, String sessionId, String email) {
 		this.id = id;
 		this.sessionId = sessionId;
 	}
@@ -25,6 +25,10 @@ public class Player {
 
 	public String getSessionId() {
 		return this.sessionId;
+	}
+
+	public String getEmail() {
+		return this.email;
 	}
 
 	@Override

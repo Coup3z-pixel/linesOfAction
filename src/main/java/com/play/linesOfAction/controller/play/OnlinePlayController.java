@@ -96,7 +96,7 @@ public class OnlinePlayController {
 			SimpMessageHeaderAccessor headerAccessor
 		) {
 
-		Player newPlayer = new Player(player.getId(), headerAccessor.getSessionId());	
+		Player newPlayer = new Player(player.getId(), headerAccessor.getSessionId(), "");	
 
 		Optional<Player> potentialPlayer = this.getAvailablePlayer();
 

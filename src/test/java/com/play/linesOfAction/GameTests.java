@@ -17,7 +17,7 @@ public class GameTests {
 
 	@Test
 	void straightMovement() {
-		Game gameTest = new Game("", new Player("", ""), new Player("", ""));
+		Game gameTest = new Game("", new Player("", "", ""), new Player("", "", ""));
 		GameReferee gameReferee = new GameReferee();
 		assertTrue(gameReferee.isMoveValid(gameTest, "b1", "b3", (short)0));
 		gameTest.movePiece("b1", "b3");
@@ -26,7 +26,7 @@ public class GameTests {
 
 	@Test
 	void diagonalMovement() {
-		Game gameTest = new Game("", new Player("", ""), new Player("", ""));
+		Game gameTest = new Game("", new Player("", "", ""), new Player("", "", ""));
 		GameReferee gameReferee = new GameReferee();
 		System.out.println(gameTest);
 		assertTrue(!gameReferee.isMoveValid(gameTest, "b8", "d6", (short)0));
