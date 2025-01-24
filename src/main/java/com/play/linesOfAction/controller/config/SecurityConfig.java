@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
 import static org.springframework.security.config.Customizer.withDefaults;
 
@@ -25,5 +26,10 @@ public class SecurityConfig {
 			})
 		.oauth2Login(withDefaults())
 		.getOrBuild();
+	}
+
+	@Bean
+	public AuthenticationSuccessHandler customSuccessHandler() {
+		return new CustomAuthenticationSuccessHandler();
 	}
 }

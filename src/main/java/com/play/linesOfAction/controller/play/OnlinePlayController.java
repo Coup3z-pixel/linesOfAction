@@ -11,11 +11,13 @@ import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import com.play.linesOfAction.controller.db.GameRepository;
 import com.play.linesOfAction.model.game.Game;
 import com.play.linesOfAction.model.game.GameReferee;
 import com.play.linesOfAction.model.game.Player;
@@ -35,6 +37,9 @@ public class OnlinePlayController {
 	@Autowired
 	private SimpMessagingTemplate sendingOperations;
 
+	@Autowired
+	GameRepository gameRepository;
+
 	@MessageMapping("/online") // url: /play/online
 	public void playGame(MoveMessage move) {
 		Game game = games.get(move.getGameId());
@@ -44,10 +49,11 @@ public class OnlinePlayController {
 
 		if(game == null) return;
 		if(result != -1) {
-			// Save it on MongoDB
-			// Send the information to both users
-			System.out.println("HI");
-			
+			gameRepository.save(game);
+			games.remove(move.getGameId());
+
+			// Notify users
+
 			return;
 		}
 
@@ -71,7 +77,7 @@ public class OnlinePlayController {
 		sendingOperations.convertAndSendToUser(
 				game.getPlayer(move.getPlayerIndex()).getId(), 
 				"/move/online", 
-				false // TODO game error message
+				false
 			);
 
 		return;
@@ -90,8 +96,7 @@ public class OnlinePlayController {
 			SimpMessageHeaderAccessor headerAccessor
 		) {
 
-		Player newPlayer = new Player(player.getId(), ""); // TODO get session id
-		headerAccessor.getSessionAttributes().put("player", newPlayer);	
+		Player newPlayer = new Player(player.getId(), headerAccessor.getSessionId());	
 
 		Optional<Player> potentialPlayer = this.getAvailablePlayer();
 
@@ -99,12 +104,13 @@ public class OnlinePlayController {
 			UUID gameId = UUID.randomUUID();
 
 			Game newGame = new Game(
-				UUID.randomUUID().toString(),
+				gameId.toString(),
 				newPlayer,
 				potentialPlayer.get()
 			);
 
 			games.put(gameId.toString(), newGame);
+			headerAccessor.getSessionAttributes().put("game", gameId.toString());	
 
 			sendingOperations.convertAndSendToUser(
 					potentialPlayer.get().getId(), 
@@ -134,16 +140,42 @@ public class OnlinePlayController {
 
 	@EventListener
 	public void onDisconnectEvent(SessionDisconnectEvent event) {
-		System.out.println(event.getSessionId());
+		// Check for if they were in a game
+		
+		StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
+		String gameId = (String) headerAccessor.getSessionAttributes().get("game");
+
+		// if player is in a game
+		if(gameId != null) {
+			Game userGame = this.games.get(gameId);
+
+			// Debug this
+			this.sendingOperations.convertAndSendToUser(
+					userGame.getPlayer(0).getId(), 
+					"/move/online", 
+					new MoveMessage()
+				);
+
+			this.sendingOperations.convertAndSendToUser(
+					userGame.getPlayer(1).getId(), 
+					"/move/online", 
+					new MoveMessage()
+				);
+
+			return;
+		}
+		
 		this.removePlayer(event.getSessionId());
+		return;
 	}
 
 	private Optional<Player> getAvailablePlayer() {
 		return Optional.ofNullable(playersWaiting.pollFirst());
 	}
 
-	private boolean removePlayer(String id) {
-		System.out.println(playersWaiting);
-		return playersWaiting.remove(new Player("", id));
+	private void removePlayer(String id) {
+		this.playersWaiting.removeIf(
+				player -> (player.getSessionId().equals(id))
+			);
 	}
 }
