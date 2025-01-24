@@ -63,7 +63,7 @@ public class OnlinePlayController {
 			game.movePiece(move.getFrom(), move.getTo());
 
 			sendingOperations.convertAndSendToUser(
-					game.getPlayer(1-move.getPlayerIndex()).getId(), 
+					game.getPlayerId(1-move.getPlayerIndex()), 
 					"/move/online", 
 					new MoveMessage("", move.getFrom(), move.getTo(), (short)-1)
 				);
@@ -75,7 +75,7 @@ public class OnlinePlayController {
 		}
 	
 		sendingOperations.convertAndSendToUser(
-				game.getPlayer(move.getPlayerIndex()).getId(), 
+				game.getPlayerId(move.getPlayerIndex()), 
 				"/move/online", 
 				false
 			);
@@ -105,8 +105,8 @@ public class OnlinePlayController {
 
 			Game newGame = new Game(
 				gameId.toString(),
-				newPlayer,
-				potentialPlayer.get()
+				newPlayer.getId(),
+				potentialPlayer.get().getId()
 			);
 
 			games.put(gameId.toString(), newGame);
@@ -151,13 +151,13 @@ public class OnlinePlayController {
 
 			// Debug this
 			this.sendingOperations.convertAndSendToUser(
-					userGame.getPlayer(0).getId(), 
+					userGame.getPlayerId(0), 
 					"/move/online", 
 					new MoveMessage()
 				);
 
 			this.sendingOperations.convertAndSendToUser(
-					userGame.getPlayer(1).getId(), 
+					userGame.getPlayerId(1), 
 					"/move/online", 
 					new MoveMessage()
 				);

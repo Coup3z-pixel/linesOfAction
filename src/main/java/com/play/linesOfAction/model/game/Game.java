@@ -13,10 +13,10 @@ public class Game {
 	private String id;
 	public char[][] board;
 	public GameHistory history;
-	private Player[] players;
+	private String[] players;
 	private short currentPlayerTurn;
 
-	public Game(String id, Player one, Player two) {
+	public Game(String id, String oneId, String twoId) {
 		this.board = new char[][]{
 			{' ', 'w', 'w', 'w', 'w', 'w', 'w', ' '},
 			{'b', ' ', ' ', ' ', ' ', ' ', ' ', 'b'},
@@ -30,19 +30,19 @@ public class Game {
 		
 		this.history = new GameHistory();
 
-		this.players = new Player[]{one, two};
+		this.players = new String[]{oneId, twoId};
 		currentPlayerTurn = 0;
 	}
 
 	public Game(char[][] board) { this.board = board; }
 
 	public String getId() { return this.id; }
-	public Player getPlayer(int playerIndex) { return this.players[playerIndex]; }
+	public String getPlayerId(int playerIndex) { return this.players[playerIndex]; }
 	public short getCurrTurn() { return this.currentPlayerTurn; }
 
 	public short returnPlayerIndex(String user_id) {
-		if(this.players[0].getId().equals(user_id)) return (short)0;
-		if(this.players[0].getId().equals(user_id)) return (short)1;
+		if(this.players[0].equals(user_id)) return (short)0;
+		if(this.players[0].equals(user_id)) return (short)1;
 		return (short)-1;
 	}
 
