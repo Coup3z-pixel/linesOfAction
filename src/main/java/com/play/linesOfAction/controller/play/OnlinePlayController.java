@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.play.linesOfAction.controller.db.GameRepository;
+import com.play.linesOfAction.controller.db.PlayerTemplate;
 import com.play.linesOfAction.model.game.Game;
 import com.play.linesOfAction.model.game.GameReferee;
 import com.play.linesOfAction.model.game.Player;
@@ -40,19 +41,42 @@ public class OnlinePlayController {
 	@Autowired
 	GameRepository gameRepository;
 
+	@Autowired
+	PlayerTemplate playerTemplate;
+
 	@MessageMapping("/online") // url: /play/online
 	public void playGame(MoveMessage move) {
-		Game game = games.get(move.getGameId());
-		short result = gameReferee.getGameState(game);
-
-		System.out.println(move);
-
+		Game game = games.get(move.getGameId());	
 		if(game == null) return;
+
+		short result = gameReferee.getGameState(game);
 		if(result != -1) {
-			gameRepository.save(game);
+			gameRepository.save(game);	
+
+			playerTemplate.pushGame(
+					game.getPlayerId(0), 
+					game.getId()
+				);
+
+			playerTemplate.pushGame(
+					game.getPlayerId(1), 
+					game.getId()
+				);
+			
 			games.remove(move.getGameId());
 
 			// Notify users
+			sendingOperations.convertAndSendToUser(
+					game.getPlayerId(result), 
+					"/move/online", 
+					new GameStatusMessage("won", result, game.getId())
+				);
+
+			sendingOperations.convertAndSendToUser(
+					game.getPlayerId(1-result), 
+					"/move/online", 
+					new GameStatusMessage("lost", result, game.getId())
+				);
 
 			return;
 		}

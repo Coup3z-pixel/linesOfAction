@@ -39,6 +39,44 @@ let prevMove = {
 	toSquare: '',
 }
 
+let fromSquare = null;
+
+const handleBoardClick = (e) => {
+	const toSquare = e.target;
+
+	// Select a toSquare
+	if (!fromSquare && toSquare.style.backgroundImage) {
+		fromSquare = toSquare;
+		toSquare.classList.add('bg-yellow-600');
+	} 
+	// Move the piece
+	else if (fromSquare) {
+
+		stompClient.publish({
+			destination: "/play/online",
+			body: JSON.stringify({
+				gameId,
+				from: fromSquare.dataset.position,
+				to: toSquare.dataset.position,
+				playerIndex: playerIndex
+			})
+		})
+
+		prevMove = {
+			from: fromSquare.dataset.position,
+			to: toSquare.dataset.position,
+			toSquare: toSquare.style.backgroundImage
+		}
+
+		let pieceImg = fromSquare.style.backgroundImage
+		fromSquare.style.backgroundImage = null;
+		fromSquare.textContent = '';
+		fromSquare.classList.remove('bg-yellow-600');
+		toSquare.style.backgroundImage = pieceImg;
+		fromSquare = null	;
+	}
+};
+
 stompClient.onConnect = (frame) => {
 			console.log('Connected: ' + frame);
 
@@ -61,49 +99,8 @@ stompClient.onConnect = (frame) => {
 				}
 			});
 
-			let fromSquare = null;
-
-				linesOfAction.addEventListener('click', (e) => {
-					const toSquare = e.target;
-
-					// Select a toSquare
-					if (!fromSquare && toSquare.style.backgroundImage) {
-						fromSquare = toSquare;
-						toSquare.classList.add('bg-yellow-600');
-					} 
-					// Move the piece
-					else if (fromSquare) {
-
-						stompClient.publish({
-							destination: "/play/online",
-							body: JSON.stringify({
-								gameId,
-								from: fromSquare.dataset.position,
-								to: toSquare.dataset.position,
-								playerIndex: playerIndex
-							})
-						})
-
-						prevMove = {
-							from: fromSquare.dataset.position,
-							to: toSquare.dataset.position,
-							toSquare: toSquare.style.backgroundImage
-						}
-
-						console.log(fromSquare.style.backgroundImage)
-						let pieceImg = fromSquare.style.backgroundImage
-						
-
-						fromSquare.style.backgroundImage = null;
-						fromSquare.textContent = '';
-						fromSquare.classList.remove('bg-yellow-600');
-						toSquare.style.backgroundImage = pieceImg;
-						fromSquare = null	;
-					}
-				});
-
-
-
+			
+				linesOfAction.addEventListener('click', handleBoardClick);
 
 			stompClient.subscribe(privatePreUrl + playerId + moveOnlineUrl, (move) => {
 
@@ -115,16 +112,25 @@ stompClient.onConnect = (frame) => {
 					const toSquare = document.querySelector(`[data-position="${prevMove.to}"]`);
 					let pieceImg = toSquare.style.backgroundImage;
 					toSquare.style.backgroundImage = prevMove.toSquare;
-					const fromSquare = document.querySelector(`[data-position="${prevMove.from}"]`);
-					fromSquare.style.backgroundImage = pieceImg;
+					const prevSquare = document.querySelector(`[data-position="${prevMove.from}"]`);
+					prevSquare.style.backgroundImage = pieceImg;
 
 					return;
 				}
 
+				// If game is over
+				if(moveBody.status) {
+					console.log("Congrats, you may suck");
+					alert(`You have ${moveBody.status}`);
+					linesOfAction.removeEventListener("click", handleBoardClick);
+
+					return; 
+				}
+
 				// If move is valid
-				const fromSquare = document.querySelector(`[data-position="${moveBody.from}"]`);
-				let pieceImg = fromSquare.style.backgroundImage;
-				fromSquare.style.backgroundImage = null;
+				const prevSquare = document.querySelector(`[data-position="${moveBody.from}"]`);
+				let pieceImg = prevSquare.style.backgroundImage;
+				prevSquare.style.backgroundImage = null;
 
 				const toSquare = document.querySelector(`[data-position="${moveBody.to}"]`);
 				toSquare.style.backgroundImage = pieceImg;

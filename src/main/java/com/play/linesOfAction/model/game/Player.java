@@ -13,10 +13,12 @@ public class Player {
 	private String id;
 	private String sessionId;
 	private String email;
+	public String[] games; // stores the id of games
 
 	public Player(String id, String sessionId, String email) {
 		this.id = id;
 		this.sessionId = sessionId;
+		this.games = new String[]{};
 	}
 
 	public String getId() {
@@ -33,6 +35,6 @@ public class Player {
 
 	@Override
 	public String toString() {
-		return "ID: " + this.id;
+		return "ID: " + this.id + "\nGames: " + this.games;
 	}
 }

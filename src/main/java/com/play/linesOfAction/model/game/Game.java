@@ -1,6 +1,5 @@
 package com.play.linesOfAction.model.game;
 
-import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 /**
@@ -9,7 +8,6 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document(collection = "Games")
 public class Game {
 
-	@Id
 	private String id;
 	public char[][] board;
 	public GameHistory history;

@@ -7,8 +7,9 @@ import java.util.LinkedList;
  * GameHistory
  */
 public class GameHistory {
+	
 	private LinkedList<String[]> history;
-	private Player[] players;
+	private String[] players;
 
 	public GameHistory() {
 		this.history = new LinkedList<>();
@@ -31,6 +32,4 @@ public class GameHistory {
 	public void pushHistory(String init, String move) {
 		history.add(new String[]{init, move});
 	}
-
-
 }
