@@ -1,6 +1,5 @@
 package com.play.linesOfAction.controller.db;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -66,5 +65,14 @@ public class PlayerTemplate implements CustomPlayerRepository {
 		}
 
 		return games;
+	}
+
+	@Override
+	public boolean isGameInUserHistory(String playerId, String gameId) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("_id").is(playerId));
+		query.addCriteria(Criteria.where("games").in(gameId));
+
+		return mongoTemplate.exists(query, Player.class);
 	}
 }
