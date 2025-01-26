@@ -1,5 +1,10 @@
 package com.play.linesOfAction.controller.db;
 
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+
 import org.bson.Document;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +14,7 @@ import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.data.mongodb.core.query.Update;
 import org.springframework.stereotype.Repository;
 
+import com.play.linesOfAction.model.game.Game;
 import com.play.linesOfAction.model.game.Player;
 
 /**
@@ -16,6 +22,9 @@ import com.play.linesOfAction.model.game.Player;
  */
 @Repository
 public class PlayerTemplate implements CustomPlayerRepository {
+
+	@Autowired
+	GameRepository gameRepository;
 
 	@Autowired
 	MongoTemplate mongoTemplate;
@@ -31,13 +40,31 @@ public class PlayerTemplate implements CustomPlayerRepository {
 	}
 
 	@Override
-	public Object getGames(String playerId) {
+	public List<String> getIdOfGames(String playerId) {
 		Query query = new Query();
 		query.addCriteria(Criteria.where("_id").is(playerId));
 		query.fields().include("games");
 
 		Document games = mongoTemplate.findOne(query, Document.class, "Players");
 
-		return games.get("games");
+		if (games != null) {
+			return games.getList("games", String.class);
+		}
+
+		return null;
+	}
+
+	@Override
+	public List<Game> getGames(List<String> idOfGames) {
+		List<Game> games = new ArrayList<>();
+
+		for (int i = 0; i < idOfGames.size(); i++) {
+			Optional<Game> optionalGame =  gameRepository.findById(idOfGames.get(i));
+
+			if (optionalGame.isPresent())
+				games.add(optionalGame.get());
+		}
+
+		return games;
 	}
 }

@@ -12,5 +12,9 @@
 			<a href="/user/setting">Setting</a>
 		</div>
 	</nav>
-	<main class="w-5/6 flex flex-col items-center justify-center h-screen" th:insert="~{${content}}"></main>
+	<main 
+		class="w-5/6 flex flex-col items-center justify-center h-screen" 
+		th:insert="~{${content}}" 
+		th:with="games=${gameList}"
+	></main>
 </body>
