@@ -24,6 +24,7 @@ import com.play.linesOfAction.model.game.GameReferee;
 import com.play.linesOfAction.model.game.Player;
 import com.play.linesOfAction.model.message.GameStatusMessage;
 import com.play.linesOfAction.model.message.MoveMessage;
+import com.play.linesOfAction.model.message.PlayerCount;
 
 /**
  * OnlinePlayController
@@ -42,7 +43,7 @@ public class OnlinePlayController {
 	GameRepository gameRepository;
 
 	@Autowired
-	PlayerTemplate playerTemplate;
+	PlayerTemplate playerTemplate;	
 
 	@MessageMapping("/online") // url: /play/online
 	public void playGame(MoveMessage move) {
@@ -87,13 +88,10 @@ public class OnlinePlayController {
 			game.movePiece(move.getFrom(), move.getTo());
 
 			sendingOperations.convertAndSendToUser(
-					game.getPlayerId(1-move.getPlayerIndex()), 
+					game.getPlayerId(1-move.getPlayerIndex()), // get opponents player index
 					"/move/online", 
 					new MoveMessage("", move.getFrom(), move.getTo(), (short)-1)
 				);
-
-			System.out.println(game);
-			System.out.println(result);
 
 			return;
 		}
@@ -124,7 +122,7 @@ public class OnlinePlayController {
 
 		Optional<Player> potentialPlayer = this.getAvailablePlayer();
 
-		if (potentialPlayer.isPresent() && !potentialPlayer.get().equals(newPlayer)) {
+		if (potentialPlayer.isPresent() && !potentialPlayer.get().getId().equals(newPlayer.getId())) {
 			UUID gameId = UUID.randomUUID();
 
 			Game newGame = new Game(
@@ -148,6 +146,13 @@ public class OnlinePlayController {
 					new GameStatusMessage("Starting", (short)0, gameId.toString())
 				);
 
+			
+			// After setting game new size is published
+			sendingOperations.convertAndSend(
+					"/move/lobby", 
+					new PlayerCount(playersWaiting.size())
+				);
+
 			return;
 		}
 
@@ -157,6 +162,12 @@ public class OnlinePlayController {
 				player.getId(), 
 				"/move/start", 
 				new GameStatusMessage("Waiting", (short)-1, null)
+			);
+
+		// After new player is in queue
+		sendingOperations.convertAndSend(
+				"/move/lobby", 
+				new PlayerCount(playersWaiting.size())
 			);
 
 		return;

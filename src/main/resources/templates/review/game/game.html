@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<script src="/play/review.js"></script>
+</head>
+<body th:fragment="gameReview(game)">	
+	<div class="min-h-screen w-11/12 flex items-center flex-col gap-8 py-12">
+		<div class="w-5/6 h-full grid grid-cols-[auto_1fr] grid-rows-[1fr_auto_1fr]">
+			<div class="" id="opponent">
+			</div>
+			<div class="flex flex-row" id="prev-game-display">
+				<div id="board" class="grid grid-rows-8">
+					<div th:each="row, rowStat: ${game.board}" class="grid grid-cols-8">
+						<div 
+							th:each="col, colStat: ${row}" 
+							th:classappend="${(rowStat.index + colStat.index) % 2 == 0 ? 'bg-orange-100' : 'bg-orange-900'}"
+							th:style="${col.toString() == ' ' ? '' : (col.toString() == 'b' ? 'background-image: url(/black-checker.svg)' : 'background-image: url(/white-checker.svg)')}"
+							class="w-16 aspect-square bg-contain bg-no-repeat bg-center"
+						>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="" id="player">
+			</div>
+			<div class="col-start-2 row-span-4 row-start-1 max-h-full overflow-auto" id="game-info">
+				<h6 class="" th:text="${game.id}"></h6>
+				<div class="grid grid-cols-2" id="game-history">
+					<div th:each="move, moveStat: ${game.history.history}" class="flex justify-center">
+						<div class="flex">
+							<div th:text="${move[0] + '->' + move[1]}"></div>
+						</div>
+					</div>
+				</div>
+				
+			</div>
+		</div>
+	</div>
+</body>
+</html>

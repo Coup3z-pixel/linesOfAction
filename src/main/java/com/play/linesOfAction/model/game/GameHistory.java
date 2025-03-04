@@ -32,4 +32,8 @@ public class GameHistory {
 	public void pushHistory(String init, String move) {
 		history.add(new String[]{init, move});
 	}
+
+	public LinkedList<String[]> getHistory() {
+		return this.history;
+	}
 }

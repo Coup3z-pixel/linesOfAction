@@ -13,6 +13,6 @@ public class Home {
 	@GetMapping("/home")
 	public String homePage(Model model) {
 		model.addAttribute("content", "home/home");
-		return "layout";
+		return "home";
 	}
 }

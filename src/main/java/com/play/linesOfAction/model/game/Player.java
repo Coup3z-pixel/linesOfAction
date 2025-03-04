@@ -12,13 +12,14 @@ public class Player {
 	@Id
 	private String id;
 	private String sessionId;
-	private String email;
+	public String email;
 	public String[] games; // stores the id of games
 
 	public Player(String id, String sessionId, String email) {
 		this.id = id;
 		this.sessionId = sessionId;
 		this.games = new String[]{};
+		this.email = email;
 	}
 
 	public String getId() {

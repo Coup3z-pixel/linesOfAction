@@ -12,4 +12,5 @@ public interface CustomPlayerRepository {
 	Object getIdOfGames(String playerId);
 	List<Game> getGames(List<String> idOfGames);
 	boolean isGameInUserHistory(String playerId, String gameId);
+	boolean doesEmailExist(String email);
 }

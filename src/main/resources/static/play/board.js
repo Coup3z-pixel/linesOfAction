@@ -3,10 +3,13 @@ let playerStatus;
 let oppenentStatus;
 let linesOfAction;
 let gameMenu;
+let playerCount;
 
+const publicPreUrl = '/lobby'
 const privatePreUrl = '/player/'
 const gameStartUrl = '/move/start'
 const moveOnlineUrl = '/move/online'
+
 
 const gamePosition = {
 	a2: 'black', a3: 'black', a4: 'black', a5: 'black', a6: 'black', a7: 'black',
@@ -78,96 +81,104 @@ const handleBoardClick = (e) => {
 };
 
 stompClient.onConnect = (frame) => {
-			console.log('Connected: ' + frame);
+	console.log('Connected: ' + frame);
 
-			stompClient.subscribe(privatePreUrl + playerId + gameStartUrl, (status) => {
-				let gameStatus = JSON.parse(status.body);
-				if(gameStatus.status == "Starting") {
-					// Change Menu for the moves
-					gameMenu.innerHTML = ''
+	// Listens to number of players
+	stompClient.subscribe('/move/lobby', (status) => {
+		console.log(status)
+		playerCount.innerHTML = status.count
+	});
 
-					gameMenu.classList.add('h-full')
-					gameMenu.classList.add('bg-stone-400')
+	// Listens to game Start
+	stompClient.subscribe(privatePreUrl + playerId + gameStartUrl, (status) => {
+		let gameStatus = JSON.parse(status.body);
+		if(gameStatus.status == "Starting") {
+			// Change Menu for the moves
+			gameMenu.innerHTML = ''
 
-					// Change the Player Status with the valid details
+			gameMenu.classList.add('h-full')
+			gameMenu.classList.add('bg-stone-400')
 
-					// Change the subscription
-					playerIndex = gameStatus.playerIndex;
-					gameId = gameStatus.gameId;
-				} else {
-					console.log(gameStatus)
-				}
-			});
+			// Change the Player Status with the valid details
 
-			
-				linesOfAction.addEventListener('click', handleBoardClick);
+			// Change the subscription
+			playerIndex = gameStatus.playerIndex;
+			gameId = gameStatus.gameId;
+		} else {
+			console.log(gameStatus)
+		}
+	});
 
-			stompClient.subscribe(privatePreUrl + playerId + moveOnlineUrl, (move) => {
+	
+	linesOfAction.addEventListener('click', handleBoardClick);
 
-				let moveBody = JSON.parse(move.body);
+	// Listens on live moves
+	stompClient.subscribe(privatePreUrl + playerId + moveOnlineUrl, (move) => {
 
-				// If move is not valid
-				if(moveBody == false) {
-					// Reverse the move
-					const toSquare = document.querySelector(`[data-position="${prevMove.to}"]`);
-					let pieceImg = toSquare.style.backgroundImage;
-					toSquare.style.backgroundImage = prevMove.toSquare;
-					const prevSquare = document.querySelector(`[data-position="${prevMove.from}"]`);
-					prevSquare.style.backgroundImage = pieceImg;
+		let moveBody = JSON.parse(move.body);
 
-					return;
-				}
+		// If move is not valid
+		if(moveBody == false) {
+			// Reverse the move
+			const toSquare = document.querySelector(`[data-position="${prevMove.to}"]`);
+			let pieceImg = toSquare.style.backgroundImage;
+			toSquare.style.backgroundImage = prevMove.toSquare;
+			const prevSquare = document.querySelector(`[data-position="${prevMove.from}"]`);
+			prevSquare.style.backgroundImage = pieceImg;
 
-				// If game is over
-				if(moveBody.status) {
-					console.log("Congrats, you may suck");
-					alert(`You have ${moveBody.status}`);
-					linesOfAction.removeEventListener("click", handleBoardClick);
-
-					return; 
-				}
-
-				// If move is valid
-				const prevSquare = document.querySelector(`[data-position="${moveBody.from}"]`);
-				let pieceImg = prevSquare.style.backgroundImage;
-				prevSquare.style.backgroundImage = null;
-
-				const toSquare = document.querySelector(`[data-position="${moveBody.to}"]`);
-				toSquare.style.backgroundImage = pieceImg;
-
-				// TODO change gamePosition
-				gamePosition[moveBody.to] = (playerIndex == 0 ? 'white' : 'black')
-				gamePosition[moveBody.from] = undefined;
-
-				return;
-			})
-		};
-
-		stompClient.onWebSocketError = (error) => {
-			console.error('Error with websocket', error);
-			disconnect();
-		};
-
-		stompClient.onStompError = (frame) => {
-				console.error('Broker reported error: ' + frame.headers['message']);
-				console.error('Additional details: ' + frame.body);
-		};
-
-		function getMatch() {
-			stompClient.publish({
-				destination: `/play/start`,
-				body: JSON.stringify({
-					id: playerId
-				})
-			});
+			return;
 		}
 
-		function disconnect() {
-				stompClient.deactivate();
-				console.log("Disconnected");
+		// If game is over
+		if(moveBody.status) {
+			console.log("Congrats, you may suck");
+			alert(`You have ${moveBody.status}`);
+			linesOfAction.removeEventListener("click", handleBoardClick);
+
+			return; 
 		}
 
-		stompClient.activate();
+		// If move is valid
+		const prevSquare = document.querySelector(`[data-position="${moveBody.from}"]`);
+		let pieceImg = prevSquare.style.backgroundImage;
+		prevSquare.style.backgroundImage = null;
+
+		const toSquare = document.querySelector(`[data-position="${moveBody.to}"]`);
+		toSquare.style.backgroundImage = pieceImg;
+
+		// TODO change gamePosition
+		gamePosition[moveBody.to] = (playerIndex == 0 ? 'white' : 'black')
+		gamePosition[moveBody.from] = undefined;
+
+		return;
+	})
+};
+
+stompClient.onWebSocketError = (error) => {
+	console.error('Error with websocket', error);
+	disconnect();
+};
+
+stompClient.onStompError = (frame) => {
+		console.error('Broker reported error: ' + frame.headers['message']);
+		console.error('Additional details: ' + frame.body);
+};
+
+function getMatch() {
+	stompClient.publish({
+		destination: `/play/start`,
+		body: JSON.stringify({
+			id: playerId
+		})
+	});
+}
+
+function disconnect() {
+		stompClient.deactivate();
+		console.log("Disconnected");
+}
+
+stompClient.activate();
 
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -176,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
 	oppenentStatus = document.getElementById("opponent-stats")
 	linesOfAction = document.createElement("lines-of-action")
 	gameMenu = document.getElementById("game-menu")
-
+	playerCount = document.getElementById("player-waiting-no")
 
 	linesOfAction.classList.add('aspect-square')
 	linesOfAction.classList.add('border-2')

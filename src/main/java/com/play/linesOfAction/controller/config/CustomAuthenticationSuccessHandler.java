@@ -10,6 +10,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import com.play.linesOfAction.controller.db.PlayerRepository;
+import com.play.linesOfAction.controller.db.PlayerTemplate;
 import com.play.linesOfAction.model.game.Player;
 
 import jakarta.servlet.ServletException;
@@ -26,6 +27,9 @@ public class CustomAuthenticationSuccessHandler
 		@Autowired
 		PlayerRepository playerRepository;
 
+		@Autowired
+		PlayerTemplate playerTemplate;
+
 		@Override
     public void onAuthenticationSuccess(
 				HttpServletRequest request, 
@@ -38,7 +42,12 @@ public class CustomAuthenticationSuccessHandler
 
 				UUID uuid = UUID.randomUUID();
 
-				playerRepository.save(new Player(uuid.toString(), "", user.getAttribute("email")));
+				System.out.println(user);
+
+				// Check if user with that email exists
+				if(!playerTemplate.doesEmailExist(user.getAttribute("email"))) {
+					playerRepository.save(new Player(uuid.toString(), "", user.getAttribute("email")));
+				}
 
 				response.sendRedirect("/play");
     }

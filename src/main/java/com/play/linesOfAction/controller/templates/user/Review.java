@@ -1,11 +1,9 @@
 package com.play.linesOfAction.controller.templates.user;
 
-import java.net.http.HttpHeaders;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.http.client.methods.HttpHead;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
@@ -60,13 +58,15 @@ public class Review {
 		if (!possibleGame.isPresent())
 			return "redirect:" + "/play";
 		
-		model.addAttribute("content", "review/review");
+		model.addAttribute("content", "review/game/game");
 
 		Game userGame = possibleGame.get();
 
+		model.addAttribute("game", userGame);
+
+		System.out.println(userGame.history.getHistory());
 
 		// Create the front end interaction
-		// pass usergame through
 		
 		return "layout";
 	}

@@ -1,3 +1,1 @@
-1. [ ] Keeps adding players on sign in
-- need to change the PlayerTemplate.java
-
+1. [needs testing] Keeps adding players on sign in

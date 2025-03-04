@@ -15,14 +15,15 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
 	@Override
 	public void configureMessageBroker(MessageBrokerRegistry config) {
-		config.enableSimpleBroker("/move", "/player");
-		config.setApplicationDestinationPrefixes("/play");
-		config.setUserDestinationPrefix("/player");
+		config.enableSimpleBroker("/move", "/player"); // subscribe
+		config.setApplicationDestinationPrefixes("/play"); // publish
+		config.setUserDestinationPrefix("/player"); // private pre url
 	}
 
 	@Override
 	public void registerStompEndpoints(StompEndpointRegistry registry) {
 		registry.addEndpoint("/play-websocket");
+		registry.addEndpoint("/public-lobby");
 	}
 	
 }

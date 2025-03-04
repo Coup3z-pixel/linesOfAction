@@ -75,4 +75,11 @@ public class PlayerTemplate implements CustomPlayerRepository {
 
 		return mongoTemplate.exists(query, Player.class);
 	}
+
+	@Override
+	public boolean doesEmailExist(String email) {
+		Query query = new Query();
+		query.addCriteria(Criteria.where("email").is(email));
+		return mongoTemplate.exists(query, Player.class);		
+	}
 }

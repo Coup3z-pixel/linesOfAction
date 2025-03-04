@@ -1,15 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-<body th:fragment="gameReview(games)">
-	<script>
-		async function redirectToGame(isOnline) {
-			let response = await fetch(`/play/game?isOnline=${isOnline}`, {
-				method: "GET"
-			})
-			const url = await response.text();
-			window.location.href = url; // Redirect to the generated URL`
-		}
-	</script>
+<body th:fragment="userReview(games)">
 	<div class="min-h-screen w-11/12 flex items-center flex-col gap-8 py-12">
 		<h1 class="text-3xl font-bold">Review</h1>
 		<div class="w-5/6">
