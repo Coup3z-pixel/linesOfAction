@@ -1,5 +1,6 @@
 package com.play.linesOfAction.controller.templates.user;
 
+import java.io.IOException;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +16,10 @@ import com.play.linesOfAction.controller.db.GameRepository;
 import com.play.linesOfAction.controller.db.PlayerTemplate;
 import com.play.linesOfAction.model.game.Game;
 
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 /**
  * Review
  */
@@ -28,11 +33,21 @@ public class Review {
 	PlayerTemplate playerTemplate;
 
 	@GetMapping("/user/review")
-	public String reviewPage(Model model, Principal principal, Authentication authentication) {
-		List<String> idOfGames = playerTemplate.getIdOfGames("5019530a-0f1d-43f1-b10b-c5463f97c688");
-		System.out.println("Id Of Games: " + idOfGames);
+	public String reviewPage(
+			Model model, 
+			HttpServletRequest request, 
+			HttpServletResponse response
+		) {
 
-		// Returning page to keep games in scope
+		Optional<String> optionalUserId = this.getUserIdCookie(request);
+
+		if (!optionalUserId.isPresent())
+			return "redirect:/sign";
+
+		String userId = optionalUserId.get();
+		
+		List<String> idOfGames = playerTemplate.getIdOfGames(userId);
+
 		model.addAttribute("content", "review/review");
 
 		if (idOfGames == null) {
@@ -47,27 +62,48 @@ public class Review {
 	}
 
 	@GetMapping("/user/review/game/{gameId}")
-	public String gameReviewPage(@PathVariable String gameId, Model model, Principal principal, Authentication authentication) {
-		// Check if the gameId is part of user's history
-	
-		if (!playerTemplate.isGameInUserHistory("5019530a-0f1d-43f1-b10b-c5463f97c688", gameId))
-			return "redirect:" + "/play";
+	public String gameReviewPage(
+			@PathVariable String gameId, 
+			Model model, 
+			HttpServletRequest request, 
+			HttpServletResponse response
+		) {
+
+		Optional<String> optionalUserId = this.getUserIdCookie(request);
+
+		if (!optionalUserId.isPresent())
+			return "redirect:/sign";
+
+		String userId = optionalUserId.get();
+
+		// Check if the gameId is part of user's history	
+		if (!playerTemplate.isGameInUserHistory(userId, gameId))
+			return "redirect:/play";
 			
 		Optional<Game> possibleGame = gameRepository.findById(gameId);
 
 		if (!possibleGame.isPresent())
-			return "redirect:" + "/play";
+			return "redirect:/play";
 		
 		model.addAttribute("content", "review/game/game");
 
 		Game userGame = possibleGame.get();
 
 		model.addAttribute("game", userGame);
-
-		System.out.println(userGame.history.getHistory());
-
-		// Create the front end interaction
 		
 		return "layout";
+	}
+
+	private Optional<String> getUserIdCookie(HttpServletRequest userRequest) {
+		if(userRequest.getCookies() == null) return Optional.ofNullable(null);
+
+		System.out.println("Checking Cookies");
+		for (Cookie cookie : userRequest.getCookies()) {
+			System.out.println(cookie.getValue());
+			if ("linesOfActionUserId".equals(cookie.getName()))
+				return Optional.ofNullable(cookie.getValue());
+		}
+
+		return Optional.ofNullable(null);
 	}
 }

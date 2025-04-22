@@ -14,6 +14,7 @@ import com.play.linesOfAction.controller.db.PlayerTemplate;
 import com.play.linesOfAction.model.game.Player;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -42,12 +43,17 @@ public class CustomAuthenticationSuccessHandler
 
 				UUID uuid = UUID.randomUUID();
 
-				System.out.println(user);
-
 				// Check if user with that email exists
-				if(!playerTemplate.doesEmailExist(user.getAttribute("email"))) {
+				if(!playerTemplate.doesEmailExist(user.getAttribute("email")))
 					playerRepository.save(new Player(uuid.toString(), "", user.getAttribute("email")));
-				}
+				
+				Cookie userIdCookie = new Cookie("linesOfActionUserId", uuid.toString());
+
+        userIdCookie.setHttpOnly(true);  // Prevent JavaScript access
+        userIdCookie.setSecure(true);     // Only allow on HTTPS
+        userIdCookie.setPath("/user");        // Available for the entire site
+        userIdCookie.setMaxAge(60 * 60 * 24 * 7); // 1 week expiration
+				response.addCookie(userIdCookie);
 
 				response.sendRedirect("/play");
     }

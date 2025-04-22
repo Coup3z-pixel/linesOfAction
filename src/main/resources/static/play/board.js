@@ -85,8 +85,7 @@ stompClient.onConnect = (frame) => {
 
 	// Listens to number of players
 	stompClient.subscribe('/move/lobby', (status) => {
-		console.log(status)
-		playerCount.innerHTML = status.count
+		playerCount.innerHTML = JSON.parse(status.body).count
 	});
 
 	// Listens to game Start

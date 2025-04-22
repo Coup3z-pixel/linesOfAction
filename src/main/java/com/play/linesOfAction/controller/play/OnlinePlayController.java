@@ -9,12 +9,14 @@ import java.util.concurrent.ConcurrentLinkedDeque;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
 import com.play.linesOfAction.controller.db.GameRepository;
@@ -45,26 +47,36 @@ public class OnlinePlayController {
 	@Autowired
 	PlayerTemplate playerTemplate;	
 
+	@SendTo("/move/lobby")
+	public PlayerCount playerWaitingCount(WebSocketSession session) {
+		System.out.println("User Session Attr: " + session.getAttributes());
+		System.out.println("Num of Players Waiting: " + this.playersWaiting.size());
+		return new PlayerCount(this.playersWaiting.size());
+	}
+
 	@MessageMapping("/online") // url: /play/online
-	public void playGame(MoveMessage move) {
-		Game game = games.get(move.getGameId());	
+	public void playGame(MoveMessage move, WebSocketSession session) {
+
+		System.out.println(session.getAttributes());
+
+		Game game = this.games.get(move.getGameId());	
 		if(game == null) return;
 
-		short result = gameReferee.getGameState(game);
+		short result = this.gameReferee.getGameState(game);
 		if(result != -1) {
-			gameRepository.save(game);	
+			this.gameRepository.save(game);	
 
-			playerTemplate.pushGame(
+			this.playerTemplate.pushGame(
 					game.getPlayerId(0), 
 					game.getId()
 				);
 
-			playerTemplate.pushGame(
+			this.playerTemplate.pushGame(
 					game.getPlayerId(1), 
 					game.getId()
 				);
 			
-			games.remove(move.getGameId());
+			this.games.remove(move.getGameId());
 
 			// Notify users
 			sendingOperations.convertAndSendToUser(
@@ -82,7 +94,7 @@ public class OnlinePlayController {
 			return;
 		}
 
-		boolean isMoveValid = gameReferee.isMoveValid(game, move.getFrom(), move.getTo(), move.getPlayerIndex());
+		boolean isMoveValid = this.gameReferee.isMoveValid(game, move.getFrom(), move.getTo(), move.getPlayerIndex());
 
 		if (isMoveValid) {
 			game.movePiece(move.getFrom(), move.getTo());
@@ -105,12 +117,6 @@ public class OnlinePlayController {
 		return;
 	}
 
-	@GetMapping("/play/online")
-	public String onlinePage(Model model) {
-		model.addAttribute("content", "play/online/online");
-		return "layout";
-	}
-
 	// WebSocket for init the game
 	@MessageMapping("/start") // url: /play/start
 	public void notifyGameStart(
@@ -131,7 +137,7 @@ public class OnlinePlayController {
 				potentialPlayer.get().getId()
 			);
 
-			games.put(gameId.toString(), newGame);
+			this.games.put(gameId.toString(), newGame);
 			headerAccessor.getSessionAttributes().put("game", gameId.toString());	
 
 			sendingOperations.convertAndSendToUser(
@@ -150,13 +156,13 @@ public class OnlinePlayController {
 			// After setting game new size is published
 			sendingOperations.convertAndSend(
 					"/move/lobby", 
-					new PlayerCount(playersWaiting.size())
+					new PlayerCount(this.playersWaiting.size())
 				);
 
 			return;
 		}
 
-		playersWaiting.addLast(newPlayer);
+		this.playersWaiting.addLast(newPlayer);
 
 		sendingOperations.convertAndSendToUser(
 				player.getId(), 
@@ -167,7 +173,7 @@ public class OnlinePlayController {
 		// After new player is in queue
 		sendingOperations.convertAndSend(
 				"/move/lobby", 
-				new PlayerCount(playersWaiting.size())
+				new PlayerCount(this.playersWaiting.size())
 			);
 
 		return;
@@ -205,12 +211,18 @@ public class OnlinePlayController {
 	}
 
 	private Optional<Player> getAvailablePlayer() {
-		return Optional.ofNullable(playersWaiting.pollFirst());
+		return Optional.ofNullable(this.playersWaiting.pollFirst());
 	}
 
 	private void removePlayer(String id) {
 		this.playersWaiting.removeIf(
 				player -> (player.getSessionId().equals(id))
 			);
+	}
+
+	@GetMapping("/play/online")
+	public String onlinePage(Model model) {
+		model.addAttribute("content", "play/online/online");
+		return "layout";
 	}
 }
