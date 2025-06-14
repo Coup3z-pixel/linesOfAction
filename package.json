@@ -1,0 +1,10 @@
+{
+	"devDependencies": {
+		"react-router-dom": "^7.6.2"
+	},
+	"dependencies": {
+		"react-stomp": "^5.1.0",
+		"sockjs-client": "^1.6.1",
+		"stompjs": "^2.3.3"
+	}
+}

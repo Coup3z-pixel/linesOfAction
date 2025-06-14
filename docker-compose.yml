@@ -1,0 +1,13 @@
+version: '1.0'
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"  # nginx serves on port 80, map to 3000
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "8080:8080"
