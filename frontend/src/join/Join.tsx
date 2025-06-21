@@ -15,7 +15,8 @@ function Join() {
 
 	const stompClientRef = useRef(null);
 	const navigate = useNavigate()
-	const userId = generateUUID()
+	// Use useRef to ensure userId remains consistent across renders
+	const userIdRef = useRef(generateUUID());
 
 	
 	useEffect(() => {
@@ -24,20 +25,18 @@ function Join() {
 			webSocketFactory: () => socket,
 			reconnectDelay: 5000,
 			connectHeaders: {
-				userId: userId
-			},
-			onConnect: () => {
-				console.log("Connected");
+						userId: userIdRef.current
+					},
+					onConnect: () => {
+						console.log("Connected");
+						console.log("Listening at: " + `/user/${userIdRef.current}/match-info/connect`)
+			
+						stompClient.subscribe(`/user/${userIdRef.current}/match-info/connect`, (message) => {
+							const response = JSON.parse(message.body);
+							console.log("Matchmaking response:", response);
 
-				stompClient.subscribe(`/user/match-info/connect`, (message) => {
-					const response = JSON.parse(message.body);
-					console.log("Matchmaking response:", response);
-					setPlayerCount(response.playersWaiting);
-
-					if (response.found) {
-						navigate('/play', { replace: true })
-					}
-				});
+							navigate(`/play?game_id=${response.gameId}&player_id=${userIdRef.current}`, { replace: true })
+						});
 
 				stompClient.subscribe("/match-info/queue-size", (message) => {
 					const response = JSON.parse(message.body)
@@ -74,8 +73,8 @@ function Join() {
 
 
 		const payload = {
-			recipient: userId,
-			userId: "", // You can use state or props here
+			recipient: userIdRef.current,
+			userId: userIdRef.current, // You can use state or props here
 			elo: 1200,
 		};
 
@@ -84,7 +83,7 @@ function Join() {
 			body: JSON.stringify(payload),
 		});
 
-		console.log("Joined Queue")
+		console.log("Joined Queue with this info: ", payload)
 		setIsInQueue(true)
 	}
 

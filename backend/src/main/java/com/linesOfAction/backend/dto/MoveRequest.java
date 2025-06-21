@@ -1,27 +1,27 @@
-package com.linesOfAction.dto;
+package com.linesOfAction.backend.dto;
 
 /**
  * MoveRequest
  */
 public class MoveRequest {
 
-	private String from;
-	private String to;
+	private int from;
+	private int to;
 	private String userId;
 
 	public MoveRequest() {
 	}
 
-	public MoveRequest(String from, String to) {
+	public MoveRequest(int from, int to) {
 		this.from = from;
 		this.to = to;
 	}
 
-	public String getFrom() {
+	public int getFrom() {
 		return this.from;
 	}
 
-	public String getTo() {
+	public int getTo() {
 		return this.to;
 	}
 

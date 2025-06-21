@@ -1,7 +1,9 @@
 package com.linesOfAction.backend.model;
 
 import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Deque;
+import java.util.List;
 
 /**
  * LinesOfActionGame
@@ -59,6 +61,46 @@ public class LinesOfActionGame {
         switchTurn();
         return true;
     }
+
+	public List<int[]> getPossibleMoves(int row, int col) {
+		List<int[]> moves = new ArrayList<>();
+		if (!isInBounds(row, col)) return moves;
+		Player player = board[row][col];
+		if (player == null) return moves;
+
+		// Check all 8 directions
+		for (int dr = -1; dr <= 1; dr++) {
+			for (int dc = -1; dc <= 1; dc++) {
+				if (dr == 0 && dc == 0) continue;
+
+				int distance = countPiecesInLine(row, col, dr, dc);
+				int targetRow = row + dr * distance;
+				int targetCol = col + dc * distance;
+
+				if (!isInBounds(targetRow, targetCol)) continue;
+				Player target = board[targetRow][targetCol];
+
+				// Can't land on own piece; can land on empty or opponent
+				if (target == null || target != player) {
+					// Ensure path is clear except final square
+					boolean pathClear = true;
+					for (int i = 1; i < distance; i++) {
+						int r = row + dr * i;
+						int c = col + dc * i;
+						if (!isInBounds(r, c) || board[r][c] != null) {
+							pathClear = false;
+							break;
+						}
+					}
+					if (pathClear) {
+						moves.add(new int[]{targetRow, targetCol});
+					}
+				}
+			}
+		}
+
+		return moves;
+	}
 
     private int countPiecesInLine(int row, int col, int dRow, int dCol) {
         int count = 1; // include current piece

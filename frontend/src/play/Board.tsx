@@ -20,6 +20,7 @@ function Board({ gameHistory }) {
 	const [isMovingPiece, setIsMovingPiece] = useState(false)
 	const [currMovingPiece, setMovingPieceCord] = useState([-1, -1])
 	const wsRef = useRef(null)
+	const [availableMoves, setAvailableMoves] = useState([])
 
 	const [board,setBoard] = useState([
 		["", "x", "x", "x", "x", "x", "x", ""],

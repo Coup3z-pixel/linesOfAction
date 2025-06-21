@@ -14,8 +14,10 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 
+import com.linesOfAction.backend.dto.MatchFoundResponse;
 import com.linesOfAction.backend.dto.MatchmakingRequest;
 import com.linesOfAction.backend.dto.MatchmakingResponse;
+import com.linesOfAction.backend.service.GameService;
 
 /**
  * MatchmakingController
@@ -28,11 +30,17 @@ public class MatchmakingController {
 
 	private Deque<WaitingUser> matchQueue = new ConcurrentLinkedDeque<>();
 
+	private final GameService gameService;
+
+	public MatchmakingController(GameService gameService) {
+		this.gameService = gameService;
+	}
+
 	@MessageMapping("/find")
 	public void matchmakingRequest(MatchmakingRequest matchRequestMessage, Principal principal) throws Exception {
 		System.out.println("New Player: " + matchRequestMessage.getRecipient() + " has joined");
 
-		this.matchQueue.add(new WaitingUser(matchRequestMessage.getRecipient(), matchRequestMessage.getElo()));
+		this.matchQueue.add(new WaitingUser(matchRequestMessage.getUserId(), matchRequestMessage.getElo()));
 
 		if(matchQueue.size() % 2 == 0 && matchQueue.size() > 0) {
 			WaitingUser firstUser = matchQueue.pollFirst();
@@ -41,15 +49,13 @@ public class MatchmakingController {
 			UUID gameId = UUID.randomUUID();
 
 			messageTemplate.convertAndSendToUser(
-					firstUser.getUserId(), 
-					"/match-info/connect", 
-					new MatchmakingResponse(matchQueue.size(), true)
+					firstUser.getUserId(), "/match-info/connect", 
+					new MatchFoundResponse(gameId.toString())
 			);
 
 			messageTemplate.convertAndSendToUser(
-					secondUser.getUserId(), 
-					"/match-info/connect", 
-					new MatchmakingResponse(matchQueue.size(), true)
+					secondUser.getUserId(), "/match-info/connect", 
+					new MatchFoundResponse(gameId.toString())
 				);
 
 			System.out.println(
@@ -58,6 +64,8 @@ public class MatchmakingController {
 						+ " and " 
 						+ secondUser.getUserId()
 				);
+
+			gameService.initGame(gameId.toString(), firstUser.getUserId(), secondUser.getUserId());
 		}
 
 		messageTemplate.convertAndSend(

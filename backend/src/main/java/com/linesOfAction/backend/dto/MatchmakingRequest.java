@@ -1,4 +1,4 @@
-package com.linesOfAction.dto;
+package com.linesOfAction.backend.dto;
 
 /**
  * MatchmakingRequestMessage
